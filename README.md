@@ -23,7 +23,7 @@ Widgets install for your user only. No root access is needed.
 
 Get the files, either way:
 
-- **Download:** on this repository's GitHub page, click **Code** → **Download ZIP** and extract it (right-click → **Extract** → **Extract archive here**). Open the extracted folder in Dolphin, right-click an empty spot and choose **Open Terminal Here**.
+- **Download:** on this repository's GitHub page, click **Code** → **Download ZIP**, extract the archive, and open a terminal in the extracted folder.
 - **Git:** `git clone https://github.com/sndpkiran/neon-kde-widgets.git && cd neon-kde-widgets`
 
 Then run:
