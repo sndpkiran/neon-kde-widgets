@@ -9,6 +9,7 @@ KCM.SimpleKCM {
     id: page
 
     property alias cfg_style: styleBox.currentIndex
+    property alias cfg_barStyle: barStyleBox.currentIndex
     property alias cfg_showBorder: showBorder.checked
     property alias cfg_showHeader: showHeader.checked
     property alias cfg_primaryColor: primaryColor.color
@@ -24,8 +25,9 @@ KCM.SimpleKCM {
 
     // ---- reset to defaults ----
     // Plasma passes each setting's default value to the page as cfg_<name>Default.
-    readonly property var settingKeys: ["style", "showBorder", "showHeader", "primaryColor", "accentColor", "warningSameAsAccent", "warningColor", "criticalColor", "backgroundOpacity", "glow", "scanlines", "scanSweep", "fontFamily"]
+    readonly property var settingKeys: ["style", "barStyle", "showBorder", "showHeader", "primaryColor", "accentColor", "warningSameAsAccent", "warningColor", "criticalColor", "backgroundOpacity", "glow", "scanlines", "scanSweep", "fontFamily"]
     property var cfg_styleDefault
+    property var cfg_barStyleDefault
     property var cfg_showBorderDefault
     property var cfg_showHeaderDefault
     property var cfg_primaryColorDefault
@@ -77,6 +79,11 @@ KCM.SimpleKCM {
             id: styleBox
             Kirigami.FormData.label: i18n("Style:")
             model: [i18n("Panel (solid HUD box)"), i18n("Holo (blend into wallpaper)")]
+        }
+        QQC2.ComboBox {
+            id: barStyleBox
+            Kirigami.FormData.label: i18n("Bars:")
+            model: [i18n("Segmented"), i18n("Solid"), i18n("Thin line"), i18n("Gradient")]
         }
         QQC2.CheckBox {
             id: showBorder
