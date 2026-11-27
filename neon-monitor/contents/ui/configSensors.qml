@@ -3,7 +3,6 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
-import org.kde.ksysguard.sensors as Sensors
 
 KCM.SimpleKCM {
     id: page
@@ -149,26 +148,18 @@ KCM.SimpleKCM {
     }
 
     // ---- GPU discovery ----
-    // ksystemstats names GPUs gpu/gpu0, gpu/gpu1, … Probe the first few and keep the
-    // ones that report a name. Missing ones never error out (they stay "Loading"),
-    // so stop waiting after a few seconds.
-    property var gpuNames: ({})      // index -> name
+    // Missing GPUs stay "Loading" forever, so stop waiting after a few seconds.
+    property QtObject gpuProbe: null
+    readonly property var gpuNames: gpuProbe ? gpuProbe.names : ({})      // index -> name
     property bool gpuScanDone: false
-
-    Instantiator {
-        model: 8
-        delegate: Sensors.Sensor {
-            required property int index
-            sensorId: "gpu/gpu" + index + "/name"
-            onValueChanged: {
-                if (!value)
-                    return;
-                const names = Object.assign({}, page.gpuNames);
-                names[index] = String(value);
-                page.gpuNames = names;
-            }
-        }
+    Component.onCompleted: {
+        const c = Qt.createComponent("GpuProbe.qml");
+        if (c.status === Component.Ready)
+            gpuProbe = c.createObject(page);
+        else
+            console.warn("Neon Monitor: GPU detection unavailable:", c.errorString());
     }
+
     Timer {
         interval: 4000
         running: true

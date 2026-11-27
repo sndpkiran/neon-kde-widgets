@@ -6,7 +6,6 @@ import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.plasma5support as P5Support
 import org.kde.kirigami as Kirigami
-import org.kde.ksysguard.sensors as Sensors
 
 PlasmoidItem {
     id: root
@@ -86,144 +85,27 @@ PlasmoidItem {
     readonly property real tempMin: 20                                       // °C, bar scale start
 
     // ---------- sensors (ksystemstats) ----------
-    Sensors.Sensor {
-        id: cpuSensor
-        sensorId: "cpu/all/usage"
-        enabled: root.showCpu
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: cpuFreqSensor
-        sensorId: "cpu/all/averageFrequency"
-        enabled: root.showCpu
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: ramSensor
-        sensorId: "memory/physical/usedPercent"
-        enabled: root.showRam
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: ramUsedSensor
-        sensorId: "memory/physical/used"
-        enabled: root.showRam
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: ramTotalSensor
-        sensorId: "memory/physical/total"
-        enabled: root.showRam
-    }
-    Sensors.Sensor {
-        id: tempSensor
-        sensorId: root.tempSensorId
-        enabled: root.showTemp
-        updateRateLimit: root.updateInterval
+    property QtObject sensors: null
+    property bool sensorModuleMissing: false
+    Component.onCompleted: {
+        const c = Qt.createComponent("SensorSet.qml");
+        if (c.status === Component.Ready) {
+            sensors = c.createObject(root, { host: root });
+        } else {
+            sensorModuleMissing = true;
+            console.warn("Neon Monitor: system sensors unavailable:", c.errorString());
+        }
     }
 
-    Sensors.Sensor {
-        id: gpuTempSensor
-        sensorId: root.gpuSensorBase + "/temperature"
-        enabled: root.showGpuTemp
-        updateRateLimit: root.updateInterval
+    property bool sensorWaitOver: false
+    Timer {
+        interval: 10000
+        running: true
+        onTriggered: root.sensorWaitOver = true
     }
-    Sensors.Sensor {
-        id: gpuNameSensor
-        sensorId: root.gpuSensorBase + "/name"
-        enabled: root.anyGpu
-    }
-    Sensors.Sensor {
-        id: gpuUsageSensor
-        sensorId: root.gpuSensorBase + "/usage"
-        enabled: root.showGpuUsage
-        updateRateLimit: root.updateInterval
-    }
-
-    // Network: all interfaces combined (bytes per second; totals in bytes)
-    Sensors.Sensor {
-        id: netDownSensor
-        sensorId: "network/all/download"
-        enabled: root.showNetDown
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: netUpSensor
-        sensorId: "network/all/upload"
-        enabled: root.showNetUp
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: netTotalDownSensor
-        sensorId: "network/all/totalDownload"
-        enabled: root.showNetDown
-    }
-    // Swap (bytes, %) and disk activity across all disks (bytes per second)
-    Sensors.Sensor {
-        id: swapSensor
-        sensorId: "memory/swap/usedPercent"
-        enabled: root.showSwap
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: swapUsedSensor
-        sensorId: "memory/swap/used"
-        enabled: root.showSwap
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: swapTotalSensor
-        sensorId: "memory/swap/total"
-        enabled: root.showSwap
-    }
-    Sensors.Sensor {
-        id: diskReadSensor
-        sensorId: "disk/all/read"
-        enabled: root.showDiskRead
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: diskWriteSensor
-        sensorId: "disk/all/write"
-        enabled: root.showDiskWrite
-        updateRateLimit: root.updateInterval
-    }
-
-    Sensors.Sensor {
-        id: netTotalUpSensor
-        sensorId: "network/all/totalUpload"
-        enabled: root.showNetUp
-    }
-
-    Sensors.Sensor {
-        id: gpuPowerSensor
-        sensorId: root.gpuSensorBase + "/power"
-        enabled: root.showGpuPower
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: gpuClockSensor
-        sensorId: root.gpuSensorBase + "/coreFrequency"
-        enabled: root.showGpuClock
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: gpuVramSensor
-        sensorId: root.gpuSensorBase + "/usedPercent"
-        enabled: root.showGpuVram
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: gpuVramUsedSensor
-        sensorId: root.gpuSensorBase + "/usedVram"
-        enabled: root.showGpuVram
-        updateRateLimit: root.updateInterval
-    }
-    Sensors.Sensor {
-        id: gpuVramTotalSensor
-        sensorId: root.gpuSensorBase + "/totalVram"
-        enabled: root.showGpuVram
-    }
+    readonly property string sensorProblem: sensorModuleMissing ? "NO SENSOR MODULE"
+                                          : sensorWaitOver && isNaN(num(sensors?.probeSensor)) ? "NO SENSOR SERVICE"
+                                          : ""
 
     // A sensor ID that doesn't exist stays "Loading" forever instead of reporting an
     // error, so give up after a few seconds without data.
@@ -260,13 +142,13 @@ PlasmoidItem {
     }
     onTempSensorIdChanged: { cpuTempTimedOut = false; cpuTempTimeout.restart(); }
 
-    readonly property real cpu: num(cpuSensor)
-    readonly property real ram: num(ramSensor)
-    readonly property real temp: tempNum(tempSensor)
-    readonly property real gpuTemp: tempNum(gpuTempSensor)
-    readonly property real gpuPower: gpuNum(gpuPowerSensor)        // W
-    readonly property real gpuClock: gpuNum(gpuClockSensor)        // MHz
-    readonly property real gpuClockMax: gpuClockSensor.maximum > 0 ? gpuClockSensor.maximum : NaN
+    readonly property real cpu: num(sensors?.cpuSensor)
+    readonly property real ram: num(sensors?.ramSensor)
+    readonly property real temp: tempNum(sensors?.tempSensor)
+    readonly property real gpuTemp: tempNum(sensors?.gpuTempSensor)
+    readonly property real gpuPower: gpuNum(sensors?.gpuPowerSensor)        // W
+    readonly property real gpuClock: gpuNum(sensors?.gpuClockSensor)        // MHz
+    readonly property real gpuClockMax: sensors?.gpuClockSensor?.maximum > 0 ? sensors?.gpuClockSensor?.maximum : NaN
 
     // Highest readings seen, for scales the hardware doesn't report
     property real gpuPowerPeak: 0
@@ -281,14 +163,14 @@ PlasmoidItem {
     // Clock bar scale: the card's reported max clock, else the peak so far rounded up to 100 MHz
     readonly property real gpuClockScale: !isNaN(gpuClockMax) ? gpuClockMax
                                           : Math.max(100, Math.ceil(gpuClockPeak / 100) * 100)
-    readonly property real gpuVram: gpuNum(gpuVramSensor)          // %
-    readonly property real gpuUsage: gpuNum(gpuUsageSensor)        // %
+    readonly property real gpuVram: gpuNum(sensors?.gpuVramSensor)          // %
+    readonly property real gpuUsage: gpuNum(sensors?.gpuUsageSensor)        // %
     readonly property bool gpuHasData: !isNaN(gpuTemp) || !isNaN(gpuPower) || !isNaN(gpuClock) || !isNaN(gpuVram)
                                        || !isNaN(gpuUsage)
 
     // Network speeds in bytes per second. 0 is a normal reading here (idle).
-    readonly property real netDown: num(netDownSensor)
-    readonly property real netUp: num(netUpSensor)
+    readonly property real netDown: num(sensors?.netDownSensor)
+    readonly property real netUp: num(sensors?.netUpSensor)
     // Bars scale to the fastest speed seen, rounded up to 1/2/5 x 10^n, and at
     // least 1 MB/s so an idle connection doesn't look busy.
     property real netDownPeak: 0
@@ -299,13 +181,13 @@ PlasmoidItem {
     readonly property real netUpScale: niceCeil(Math.max(1e6, netUpPeak))
 
     // Swap: no swap configured reads as total 0
-    readonly property real swapTotal: num(swapTotalSensor)
+    readonly property real swapTotal: num(sensors?.swapTotalSensor)
     readonly property bool noSwap: swapTotal === 0
-    readonly property real swap: noSwap ? NaN : num(swapSensor)
+    readonly property real swap: noSwap ? NaN : num(sensors?.swapSensor)
 
     // Disk activity, bytes per second; idle is a normal 0. Scaled like the network.
-    readonly property real diskRead: num(diskReadSensor)
-    readonly property real diskWrite: num(diskWriteSensor)
+    readonly property real diskRead: num(sensors?.diskReadSensor)
+    readonly property real diskWrite: num(sensors?.diskWriteSensor)
     property real diskReadPeak: 0
     property real diskWritePeak: 0
     onDiskReadChanged: if (diskRead > diskReadPeak) diskReadPeak = diskRead
@@ -314,7 +196,7 @@ PlasmoidItem {
     readonly property real diskWriteScale: niceCeil(Math.max(1e6, diskWritePeak))
     // Text for a GPU row with no value yet: still waiting, or the sensor doesn't exist
     readonly property string gpuNoData: gpuTimedOut ? "NO GPU SENSOR" : "SCANNING…"
-    readonly property string gpuName: String(gpuNameSensor.value || "")
+    readonly property string gpuName: String(sensors?.gpuNameSensor?.value || "")
                                           .replace(/^(NVIDIA|AMD|Intel)\s+/i, "")
                                           .replace(/^(GeForce|Radeon)\s+/i, "")
                                           .toUpperCase()
@@ -426,7 +308,7 @@ PlasmoidItem {
         return v > 0 ? v : NaN;
     }
     function num(sensor) {
-        const v = sensor.value;
+        const v = sensor ? sensor.value : undefined;
         return (typeof v === "number" && isFinite(v)) ? v : NaN;
     }
     // Smallest 1, 2 or 5 x 10^n that's >= v
@@ -483,7 +365,7 @@ PlasmoidItem {
     function diskPercent(d) { return d && d.size > 0 ? d.used / d.size * 100 : NaN; }
 
     // ---------- metric list (shared by all views) ----------
-    // Keys of the metrics to show, in display order. Only changes with the settings,
+    // Keys of the metrics to show, in display order. Only changes with the settings (or sensor state),
     // so the views don't rebuild on every sensor update.
     readonly property var metricKeys: {
         const k = [];
@@ -500,6 +382,8 @@ PlasmoidItem {
         if (showNetUp) k.push("netUp");
         if (showDiskRead) k.push("diskRead");
         if (showDiskWrite) k.push("diskWrite");
+        // One row instead of a column of "--"
+        if (sensorProblem && k.length) k.splice(0, k.length, "offline");
         if (showDisk)
             for (const m of mounts) k.push("disk:" + m);
         return k;
@@ -538,14 +422,14 @@ PlasmoidItem {
         const d = {};
         d.cpu = {
             label: "CPU.USAGE", short: "CPU", value: pct(cpu),
-            detail: cpuFreqSensor.formattedValue || "",
+            detail: sensors?.cpuFreqSensor?.formattedValue || "",
             fraction: cpu / 100, warn: cpu >= cpuWarn, crit: cpu >= cpuCrit,
             graph: graph(cpuGraphOn, cpuHistory, 0, 100, cpuWarn, cpuCrit)
         };
         d.ram = {
             label: "MEM.RAM", short: "RAM", value: pct(ram),
-            detail: (ramUsedSensor.formattedValue && ramTotalSensor.formattedValue)
-                    ? ramUsedSensor.formattedValue + " / " + ramTotalSensor.formattedValue : "",
+            detail: (sensors?.ramUsedSensor?.formattedValue && sensors?.ramTotalSensor?.formattedValue)
+                    ? sensors?.ramUsedSensor?.formattedValue + " / " + sensors?.ramTotalSensor?.formattedValue : "",
             fraction: ram / 100, warn: ram >= ramWarn, crit: ram >= ramCrit, graph: null
         };
         d.cpuTemp = {
@@ -563,21 +447,21 @@ PlasmoidItem {
         };
         d.netDown = {
             label: "NET.DOWN", short: "N.DWN", value: speed(netDown),
-            detail: isNaN(num(netTotalDownSensor)) ? "" : "TOTAL " + bytes(num(netTotalDownSensor)),
+            detail: isNaN(num(sensors?.netTotalDownSensor)) ? "" : "TOTAL " + bytes(num(sensors?.netTotalDownSensor)),
             fraction: netDown / netDownScale, warn: false, crit: false,
             graph: graph(netDownGraphOn, netDownHistory, 0, netDownScale, NaN, NaN)
         };
         d.netUp = {
             label: "NET.UP", short: "N.UP", value: speed(netUp),
-            detail: isNaN(num(netTotalUpSensor)) ? "" : "TOTAL " + bytes(num(netTotalUpSensor)),
+            detail: isNaN(num(sensors?.netTotalUpSensor)) ? "" : "TOTAL " + bytes(num(sensors?.netTotalUpSensor)),
             fraction: netUp / netUpScale, warn: false, crit: false,
             graph: graph(netUpGraphOn, netUpHistory, 0, netUpScale, NaN, NaN)
         };
         d.swap = {
             label: "MEM.SWAP", short: "SWAP", value: pct(swap),
             detail: noSwap ? "NO SWAP"
-                    : (swapUsedSensor.formattedValue && swapTotalSensor.formattedValue)
-                      ? swapUsedSensor.formattedValue + " / " + swapTotalSensor.formattedValue : "",
+                    : (sensors?.swapUsedSensor?.formattedValue && sensors?.swapTotalSensor?.formattedValue)
+                      ? sensors?.swapUsedSensor?.formattedValue + " / " + sensors?.swapTotalSensor?.formattedValue : "",
             fraction: swap / 100, warn: false, crit: false, graph: null
         };
         d.diskRead = {
@@ -619,8 +503,8 @@ PlasmoidItem {
         d.gpuVram = {
             label: "GPU.VRAM", short: "VRAM", value: pct(gpuVram),
             detail: isNaN(gpuVram) ? gpuNoData
-                    : (gpuVramUsedSensor.formattedValue && gpuVramTotalSensor.formattedValue)
-                      ? gpuVramUsedSensor.formattedValue + " / " + gpuVramTotalSensor.formattedValue : "",
+                    : (sensors?.gpuVramUsedSensor?.formattedValue && sensors?.gpuVramTotalSensor?.formattedValue)
+                      ? sensors?.gpuVramUsedSensor?.formattedValue + " / " + sensors?.gpuVramTotalSensor?.formattedValue : "",
             fraction: gpuVram / 100, warn: gpuVram >= vramWarn, crit: gpuVram >= vramCrit, graph: null
         };
         for (const m of mounts) {
@@ -632,6 +516,10 @@ PlasmoidItem {
                 fraction: p / 100, warn: p >= diskWarn, crit: p >= diskCrit, graph: null
             };
         }
+        d.offline = {
+            label: "SYS.SENSORS", short: "SENSORS", value: "OFF", detail: sensorProblem,
+            fraction: NaN, warn: true, crit: false, graph: null
+        };
         return d;
     }
 
@@ -639,7 +527,8 @@ PlasmoidItem {
     preferredRepresentation: inPanel ? compactRepresentation : fullRepresentation
     toolTipMainText: i18n("System monitor")
     // built from the once-per-tick metric table, like the views
-    toolTipSubText: metricKeys.map(k => {
+    toolTipSubText: (sensorProblem ? i18n("System sensors unavailable: is ksystemstats installed?") + "\n" : "")
+                    + metricKeys.map(k => {
         const m = metricData[k];
         return m ? m.short + " " + m.value : "";
     }).filter(t => t).join("  ·  ")
@@ -959,7 +848,14 @@ PlasmoidItem {
             rowSpacing: compact.pixelSize * 0.2
 
             CompactStat {
-                visible: root.showCpu
+                visible: root.sensorProblem !== "" && (root.showCpu || root.showRam || root.showTemp || root.showGpuTemp)
+                label: "SENSORS"; valueText: "OFF"
+                warn: true; crit: false
+                primary: root.primary; accent: root.accent; warning: root.warning; critical: root.critical
+                fontFamily: root.fontFamily; pixelSize: compact.pixelSize
+            }
+            CompactStat {
+                visible: root.showCpu && !root.sensorProblem
                 label: "CPU"; valueText: root.pct(root.cpu)
                 warn: root.cpu >= root.cpuWarn
                 crit: root.cpu >= root.cpuCrit
@@ -967,7 +863,7 @@ PlasmoidItem {
                 fontFamily: root.fontFamily; pixelSize: compact.pixelSize
             }
             CompactStat {
-                visible: root.showRam
+                visible: root.showRam && !root.sensorProblem
                 label: "RAM"; valueText: root.pct(root.ram)
                 warn: root.ram >= root.ramWarn
                 crit: root.ram >= root.ramCrit
@@ -975,7 +871,7 @@ PlasmoidItem {
                 fontFamily: root.fontFamily; pixelSize: compact.pixelSize
             }
             CompactStat {
-                visible: root.showTemp
+                visible: root.showTemp && !root.sensorProblem
                 label: "TMP"; valueText: root.degrees(root.temp)
                 warn: root.temp >= root.cpuTempWarn
                 crit: root.temp >= root.cpuTempCrit
@@ -983,7 +879,7 @@ PlasmoidItem {
                 fontFamily: root.fontFamily; pixelSize: compact.pixelSize
             }
             CompactStat {
-                visible: root.showGpuTemp
+                visible: root.showGpuTemp && !root.sensorProblem
                 label: "GPU"; valueText: root.degrees(root.gpuTemp)
                 warn: root.gpuTemp >= root.gpuTempWarn
                 crit: root.gpuTemp >= root.gpuTempCrit
@@ -1332,7 +1228,8 @@ PlasmoidItem {
                         opacity: 0.8
                     }
                     Text {
-                        text: "LIVE // " + (root.updateInterval / 1000).toFixed(root.updateInterval % 1000 ? 2 : 1) + "s"
+                        text: root.sensorProblem ? "SENSORS OFFLINE"
+                              : "LIVE // " + (root.updateInterval / 1000).toFixed(root.updateInterval % 1000 ? 2 : 1) + "s"
                         font.family: root.fontFamily
                         font.pixelSize: full.textSize(0.85)
                         color: root.accent
