@@ -178,6 +178,11 @@
             <min>0</min>
             <max>1</max>
         </entry>
+        <entry name="barStyle" type="Int">
+            <default>0</default>
+            <min>0</min>
+            <max>3</max>
+        </entry>
         <!-- frame outline (Panel) / corner brackets (Holo) and the accent tabs -->
         <entry name="showBorder" type="Bool">
             <default>true</default>
