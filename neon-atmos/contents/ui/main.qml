@@ -499,13 +499,14 @@ PlasmoidItem {
             }
             return { u: u, keep: keep };
         }
-        readonly property var stackPlan: plan(null, keep => {
+        function stackU(keep) {
             let h = chromeU + headerU + currentU;
             if (keep.details) h += gapU + detailsRowsU;
             if (keep.hourly) h += gapU + hourlyU;
             if (keep.daily) h += gapU + dailyU;
-            return Math.min(width / 22, height / (h * 1.03));
-        })
+            return h * 1.03;
+        }
+        readonly property var stackPlan: plan(null, keep => Math.min(width / 22, height / stackU(keep)))
         readonly property var widePlan: plan(null, keep => {
             let w = chromeU + currentW, h = currentU;
             if (keep.details) { w += sectionGapW + detailsW; h = Math.max(h, wideDetailsH); }
@@ -524,7 +525,7 @@ PlasmoidItem {
         readonly property real pad: u * (tier === "tiny" ? 0.4 : 0.9)
 
         Layout.preferredWidth: gu * 20
-        Layout.preferredHeight: gu * 26
+        Layout.preferredHeight: Math.ceil(stackU({ details: root.showDetails, hourly: root.showHourly, daily: root.showDaily }) * gu * 20 / 22)
         Layout.minimumWidth: gu * 7
         Layout.minimumHeight: gu * 3.5
 
@@ -553,7 +554,7 @@ PlasmoidItem {
         Item {
             id: frame
             anchors.fill: parent
-            anchors.margins: full.u * 0.4
+            anchors.margins: Math.round(full.u * 0.4)
             readonly property real c: full.u * 1.6
         }
 
@@ -669,7 +670,7 @@ PlasmoidItem {
         Item {
             id: contentLayer
             anchors.fill: frame
-            anchors.margins: full.u * (full.tier === "tiny" ? 0.25 : 0.5)
+            anchors.margins: Math.round(full.u * (full.tier === "tiny" ? 0.25 : 0.5))
 
             layer.enabled: root.glowEnabled || root.holo
             layer.effect: MultiEffect {
