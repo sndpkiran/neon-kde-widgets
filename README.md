@@ -81,3 +81,7 @@ Your open apps aren't affected. On systems without systemd, use `kquitapp6 plasm
 - **Neon Atmos** gets weather from [Open-Meteo](https://open-meteo.com/). It sends the chosen location's coordinates, rounded to about 1 km, on every refresh, and the city name when you search for one in its settings. Nothing is sent until a location is set.
 - **Neon Player** uses Plasma's own media player module (`org.kde.plasma.private.mpris`). It's a private API, so a major Plasma update could break it.
 - **Neon Monitor** reads sensors from ksystemstats and storage from `df`. Available sensors depend on your hardware; missing ones show a message such as `NO GPU SENSOR` instead of a reading. It needs the `ksystemstats` service (and its `libksysguard` library), which very minimal Plasma installs can leave out: if the widget says `SENSORS OFFLINE`, install `ksystemstats` with your package manager and log out and back in. Storage keeps working either way.
+
+## License
+
+[GPL-3.0-or-later](LICENSE)

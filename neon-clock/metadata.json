@@ -5,7 +5,7 @@
         "Description": "Neon HUD-style digital clock with glitch effects",
         "Icon": "preferences-system-time",
         "Category": "Date and Time",
-        "License": "GPL-2.0-or-later",
+        "License": "GPL-3.0-or-later",
         "Version": "1.0",
         "EnabledByDefault": true
     },

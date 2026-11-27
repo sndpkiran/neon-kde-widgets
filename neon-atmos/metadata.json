@@ -5,7 +5,7 @@
         "Description": "Neon weather HUD: current conditions, 24-hour graph and daily forecast (Open-Meteo)",
         "Icon": "weather-few-clouds",
         "Category": "Environment and Weather",
-        "License": "GPL-2.0-or-later",
+        "License": "GPL-3.0-or-later",
         "Version": "1.0",
         "EnabledByDefault": true
     },
