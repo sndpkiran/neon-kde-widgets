@@ -5,7 +5,7 @@
         "Description": "Neon HUD-style system monitor: CPU, RAM, swap, temperatures, GPU, network, disk activity and storage",
         "Icon": "utilities-system-monitor",
         "Category": "System Information",
-        "License": "GPL-2.0-or-later",
+        "License": "GPL-3.0-or-later",
         "Version": "1.0",
         "EnabledByDefault": true
     },
