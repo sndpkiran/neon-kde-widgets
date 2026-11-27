@@ -212,7 +212,7 @@ PlasmoidItem {
         Item {
             id: frame
             anchors.fill: parent
-            anchors.margins: full.u * 0.4
+            anchors.margins: Math.round(full.u * 0.4)
             readonly property real c: full.u * 1.6
         }
 
@@ -418,7 +418,7 @@ PlasmoidItem {
                         Item {
                             id: timeBox
                             anchors.fill: parent
-                            visible: !root.glowEnabled   // drawn by the glow effect instead
+                            z: 1
                             readonly property real aberration: full.u * 0.12
 
                             // Measure the digits' actual ink at 100px, then scale so they fill the box.
@@ -514,20 +514,19 @@ PlasmoidItem {
                             brightness: 0.5 * root.glowStrength
                             opacity: Math.min(1, root.glowStrength * 1.4)
                         }
-                        // Tight inner glow + the sharp digits on top
+                        // Tight inner glow (timeBox draws the sharp digits on top)
                         MultiEffect {
                             anchors.fill: timeBox
                             source: timeBox
                             visible: root.glowEnabled
                             autoPaddingEnabled: true
+                            blurEnabled: true
                             blurMax: 32
-                            shadowEnabled: true
-                            shadowColor: root.primary
-                            shadowBlur: 0.8
-                            shadowOpacity: Math.min(1, 0.3 + root.glowStrength)
-                            shadowScale: 1 + 0.03 * root.glowStrength
-                            shadowHorizontalOffset: 0
-                            shadowVerticalOffset: 0
+                            blur: 0.8
+                            colorization: 1.0
+                            colorizationColor: root.primary
+                            opacity: Math.min(1, 0.3 + root.glowStrength)
+                            scale: 1 + 0.03 * root.glowStrength
                         }
                     }
 
