@@ -21,6 +21,8 @@ PlasmoidItem {
     readonly property bool showRemaining: Plasmoid.configuration.showRemaining
 
     readonly property bool holo: Plasmoid.configuration.style === 1
+    readonly property int progressBarStyle: Plasmoid.configuration.progressBarStyle
+    readonly property int volumeBarStyle: Plasmoid.configuration.volumeBarStyle
     readonly property bool borderEnabled: Plasmoid.configuration.showBorder
     readonly property bool headerEnabled: Plasmoid.configuration.showHeader
     readonly property bool glowEnabled: Plasmoid.configuration.glow
@@ -427,29 +429,86 @@ PlasmoidItem {
         onHoveredChanged: if (hovered && !scroll.running) nextPass()
     }
 
-    // Segmented bar: lit segments up to `fraction`, brightest at the tip.
+    // style: 0 segmented, 1 solid, 2 thin line, 3 gradient
     component SegmentBar: Item {
         id: bar
         property real fraction: NaN
         property real u: 8
         property color tone: "cyan"
         property color primary: "cyan"
+        property int style: 0
         readonly property real gap: Math.max(1, u * 0.14)
         readonly property int count: Math.max(8, Math.floor((width + gap) / (u * 0.6 + gap)))
         readonly property real segW: (width - gap * (count - 1)) / count
         readonly property int lit: isNaN(fraction) ? 0
                                    : Math.round(Math.max(0, Math.min(1, fraction)) * count)
+        readonly property real fillW: isNaN(fraction) ? 0 : Math.round(width * Math.max(0, Math.min(1, fraction)))
+        readonly property color track: Qt.rgba(primary.r, primary.g, primary.b, 0.12)
+        readonly property color tip: Qt.lighter(tone, 1.35)
+        readonly property real lineH: Math.max(2, Math.round(height * 0.35))
+
         Repeater {
-            model: bar.count
+            model: bar.style === 0 ? bar.count : 0
             Rectangle {
                 required property int index
                 x: index * (bar.segW + bar.gap)
                 width: bar.segW
                 height: bar.height
-                color: index >= bar.lit
-                       ? Qt.rgba(bar.primary.r, bar.primary.g, bar.primary.b, 0.12)
-                       : index === bar.lit - 1 ? Qt.lighter(bar.tone, 1.35) : bar.tone
+                color: index >= bar.lit ? bar.track
+                       : index === bar.lit - 1 ? bar.tip : bar.tone
             }
+        }
+
+        Rectangle {
+            visible: bar.style === 1 || bar.style === 3
+            anchors.fill: parent
+            color: bar.track
+        }
+        Rectangle {
+            visible: bar.style === 1
+            width: bar.fillW
+            height: bar.height
+            color: bar.tone
+        }
+        Rectangle {
+            visible: bar.style === 3
+            width: bar.fillW
+            height: bar.height
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0; color: Qt.rgba(bar.tone.r, bar.tone.g, bar.tone.b, 0.1) }
+                GradientStop { position: 1; color: bar.tone }
+            }
+        }
+        Rectangle {
+            visible: (bar.style === 1 || bar.style === 3) && bar.fillW > 0
+            x: bar.fillW - width
+            width: Math.min(bar.fillW, Math.max(2, Math.round(bar.u * 0.25)))
+            height: bar.height
+            color: bar.tip
+        }
+
+        Rectangle {
+            visible: bar.style === 2
+            y: (bar.height - height) / 2
+            width: bar.width
+            height: Math.max(1, Math.round(bar.lineH / 2))
+            color: Qt.rgba(bar.primary.r, bar.primary.g, bar.primary.b, 0.25)
+        }
+        Rectangle {
+            visible: bar.style === 2
+            y: (bar.height - height) / 2
+            width: bar.fillW
+            height: bar.lineH
+            color: bar.tone
+        }
+        Rectangle {
+            visible: bar.style === 2 && !isNaN(bar.fraction)
+            width: bar.height
+            height: bar.height
+            radius: width / 2
+            x: Math.max(0, Math.min(bar.width - width, bar.fillW - width / 2))
+            color: bar.tip
         }
     }
 
@@ -1159,6 +1218,7 @@ PlasmoidItem {
                         u: full.u * (full.tiny ? 0.6 : 1)
                         tone: prog.dragging ? root.accent : root.primary
                         primary: root.primary
+                        style: root.progressBarStyle
 
                         MouseArea {
                             id: seekArea
@@ -1319,6 +1379,7 @@ PlasmoidItem {
                         u: full.u * 0.7
                         tone: root.accent
                         primary: root.primary
+                        style: root.volumeBarStyle
 
                         MouseArea {
                             anchors.fill: parent
