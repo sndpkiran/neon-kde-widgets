@@ -1,0 +1,14 @@
+{
+    "KPlugin": {
+        "Id": "io.github.sndpkiran.neonplayer",
+        "Name": "Neon Player",
+        "Description": "Neon now-playing HUD for any MPRIS media player",
+        "Icon": "media-playback-start",
+        "Category": "Multimedia",
+        "License": "GPL-2.0-or-later",
+        "Version": "1.0",
+        "EnabledByDefault": true
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

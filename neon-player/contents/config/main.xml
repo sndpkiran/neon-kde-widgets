@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+                          http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+    <group name="General">
+        <!-- media -->
+        <!-- album art: 0 = neon tint, 1 = original colors, 2 = hidden -->
+        <entry name="artStyle" type="Int">
+            <default>1</default>
+            <min>0</min>
+            <max>2</max>
+        </entry>
+        <!-- take the accent color from the album art (neon-ized); off = use the chosen accent -->
+        <entry name="artAccent" type="Bool">
+            <default>false</default>
+        </entry>
+        <!-- blurred copy of the album art behind the content -->
+        <entry name="artBackdrop" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="showAlbum" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="showVolume" type="Bool">
+            <default>true</default>
+        </entry>
+        <!-- show time left (-1:12) instead of the track length; also toggled by clicking the time -->
+        <entry name="showRemaining" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="showShuffleRepeat" type="Bool">
+            <default>true</default>
+        </entry>
+        <!-- which player to show -->
+        <entry name="ignoreBrowsers" type="Bool">
+            <default>false</default>
+        </entry>
+        <!-- comma-separated player names to never show, e.g. "vlc, elisa" -->
+        <entry name="ignoredPlayers" type="String">
+            <default></default>
+        </entry>
+        <!-- player to prefer when several are open, e.g. "spotify" -->
+        <entry name="preferredPlayer" type="String">
+            <default></default>
+        </entry>
+        <entry name="glitchOnChange" type="Bool">
+            <default>true</default>
+        </entry>
+
+        <!-- appearance -->
+        <!-- 0 = Panel (solid HUD box), 1 = Holo (blends into the wallpaper) -->
+        <entry name="style" type="Int">
+            <default>0</default>
+            <min>0</min>
+            <max>1</max>
+        </entry>
+        <!-- frame outline (Panel) / corner brackets (Holo) and the accent tabs -->
+        <entry name="showBorder" type="Bool">
+            <default>true</default>
+        </entry>
+        <!-- title line and divider at the top -->
+        <entry name="showHeader" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="primaryColor" type="Color">
+            <default>#00f0ff</default>
+        </entry>
+        <entry name="accentColor" type="Color">
+            <default>#ff2a6d</default>
+        </entry>
+        <entry name="backgroundOpacity" type="Int">
+            <default>75</default>
+            <min>0</min>
+            <max>100</max>
+        </entry>
+        <entry name="fontFamily" type="String">
+            <default></default>
+        </entry>
+        <entry name="glow" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="scanlines" type="Bool">
+            <default>true</default>
+        </entry>
+        <!-- slow glow band moving down the widget (costs a little CPU: it redraws ~15x a second) -->
+        <entry name="scanSweep" type="Bool">
+            <default>true</default>
+        </entry>
+    </group>
+</kcfg>
