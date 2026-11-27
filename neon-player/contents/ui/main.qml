@@ -853,7 +853,7 @@ PlasmoidItem {
         Item {
             id: frame
             anchors.fill: parent
-            anchors.margins: full.u * 0.4
+            anchors.margins: Math.round(full.u * 0.4)
             readonly property real c: full.u * 1.6
         }
 
@@ -1030,7 +1030,7 @@ PlasmoidItem {
         Item {
             id: contentLayer
             anchors.fill: frame
-            anchors.margins: full.u * (full.tier === "tiny" ? 0.25 : 0.5)
+            anchors.margins: Math.round(full.u * (full.tier === "tiny" ? 0.25 : 0.5))
 
             layer.enabled: root.glowEnabled || root.holo
             layer.effect: MultiEffect {
