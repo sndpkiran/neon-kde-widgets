@@ -1,0 +1,14 @@
+{
+    "KPlugin": {
+        "Id": "io.github.sndpkiran.neonmonitor",
+        "Name": "Neon Monitor",
+        "Description": "Neon HUD-style system monitor: CPU, RAM, swap, temperatures, GPU, network, disk activity and storage",
+        "Icon": "utilities-system-monitor",
+        "Category": "System Information",
+        "License": "GPL-2.0-or-later",
+        "Version": "1.0",
+        "EnabledByDefault": true
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
